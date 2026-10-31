@@ -1,11 +1,57 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
-    "file": "name",
+    "name": "equipment-record",
+    "title": "Pressure equipment record",
+    "for_each": "select id,code from equipment where status<>'retired' order by code",
+    "file": "code",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      { "title": "Item", "layout": "record", "sql": "select r.code,r.site,r.name,r.kind,r.hazard_level,r.fluid,r.design_pressure_kpa,e.design_temp_c,e.manufacturer,e.serial_no,e.year_built,e.design_registration,e.item_registration,r.status from v_register r join equipment e on e.id=r.equipment_id where r.equipment_id=$1" },
+      { "title": "Certificate of inspection", "layout": "record", "sql": "select cert_no,issued_on,expires_on,issued_by,conditions from v_certificates where equipment_id=$1" },
+      { "title": "Inspection history", "sql": "select code,kind,done_on,result,inspector,report_ref,findings from inspections where equipment_id=$1 order by done_on desc" },
+      { "title": "Thickness monitoring", "sql": "select cml,location,last_on,last_mm,required_mm,rate_mm_yr,remaining_life_yrs from v_cml_rates where equipment_id=$1 order by cml" },
+      { "title": "Relief devices", "sql": "select v.valve,v.set_pressure_kpa,v.last_tested,v.last_result,v.next_due from v_valves v where v.valve_id in (select id from relief_valves where equipment_id=$1) order by v.valve" }
+    ]
+  },
+  {
+    "name": "remaining-life-report",
+    "title": "Remaining life assessment",
+    "for_each": "select distinct e.id,e.code from equipment e join cmls c on c.equipment_id=e.id where e.status<>'retired' order by e.code",
+    "file": "code",
+    "sections": [
+      { "title": "Item", "layout": "record", "sql": "select equipment,site,name,kind,last_internal,scheme_internal,half_life_internal,ceiling_internal,next_internal,internal_set_by from v_due where equipment_id=$1" },
+      { "title": "Monitoring points", "note": "Rates in mm a year. The higher of the long term and short term rate governs. Next internal is no later than half the remaining life or ten years (API 510 6.5.1.1).", "sql": "select cml,location,nominal_mm,required_mm,first_on,first_mm,last_on,last_mm,long_term_mm_yr,short_term_mm_yr,governs,remaining_life_yrs from v_cml_rates where equipment_id=$1 order by cml" },
+      { "title": "Readings", "sql": "select c.code cml,r.measured_on,r.thickness_mm from readings r join cmls c on c.id=r.cml_id where c.equipment_id=$1 order by c.code,r.measured_on" }
+    ]
+  },
+  {
+    "name": "relief-valve-register",
+    "title": "Relief valve register",
+    "for_each": "select id,code from sites order by code",
+    "file": "code",
+    "sections": [
+      { "title": "Site", "layout": "record", "sql": "select code,name,country,inspection_body from sites where id=$1" },
+      { "title": "Valves", "sql": "select v.valve,v.equipment,v.set_pressure_kpa,v.design_pressure_kpa,v.service,v.interval_months,v.last_tested,v.last_pop_kpa,v.last_result,v.next_due,v.status from v_valves v where v.site=(select code from sites where id=$1) order by v.valve" }
+    ]
+  },
+  {
+    "name": "anomaly-report",
+    "title": "Anomaly report",
+    "for_each": "select id,code from anomalies where closed_on is null order by code",
+    "file": "code",
+    "sections": [
+      { "title": "Finding", "layout": "record", "sql": "select a.code,e.code equipment,e.name,a.severity,a.raised_on,a.description,a.due_on,i.code inspection,i.report_ref from anomalies a join equipment e on e.id=a.equipment_id left join inspections i on i.id=a.inspection_id where a.id=$1" },
+      { "title": "Close-out", "note": "Close against the work order or report that fixed it.", "sql": "select coalesce(closed_ref,'Open') reference,closed_on from anomalies where id=$1" }
+    ]
+  },
+  {
+    "name": "certificate-schedule",
+    "title": "Certificate of inspection schedule",
+    "for_each": "select id,code from sites order by code",
+    "file": "code",
+    "sections": [
+      { "title": "Site", "layout": "record", "sql": "select code,name,country,inspection_body from sites where id=$1" },
+      { "title": "Certificates", "sql": "select c.equipment,c.cert_no,c.issued_on,c.expires_on,c.days_left,c.issued_by,c.conditions from v_certificates c join equipment e on e.id=c.equipment_id where e.site_id=$1 and e.status<>'retired' order by c.expires_on" },
+      { "title": "In service without a certificate", "sql": "select e.code,e.name,e.hazard_level from equipment e where e.site_id=$1 and e.status='in_service' and not exists (select 1 from certificates c where c.equipment_id=e.id) order by e.code" }
     ]
   }
 ]

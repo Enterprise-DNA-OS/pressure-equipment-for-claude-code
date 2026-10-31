@@ -1,0 +1,5 @@
+Tag,CML,Location,Nominal thickness,Required thickness,Date,Thickness
+V-501,CML-01,Shell bottom,10,7.5,12/05/2022,9.8
+V-501,CML-01,Shell bottom,10,7.5,20/06/2024,9.6
+E-501,CML-01,Shell at steam inlet,9,6.5,2021-04-10,8.7
+E-501,CML-01,Shell at steam inlet,9,6.5,2023-04-14,8.1

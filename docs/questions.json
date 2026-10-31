@@ -1,0 +1,12 @@
+[
+  ["Which items are in service without a current certificate of inspection?", "compliance"],
+  ["Which vessels will reach half their remaining life before the internal our written scheme allows?", "remaining-life"],
+  ["Which monitoring points lost wall faster in the last interval than over their whole life?", "corrosion"],
+  ["Which certificates expire in the next 90 days, and is the inspection due before then?", "cert-renewals"],
+  ["Which relief valves are set above the design pressure of the item they protect?", "compliance"],
+  ["Which relief valves failed their last bench test and have not passed since?", "valves-due"],
+  ["What internals and valve tests must go into next year's shutdown, site by site?", "shutdown-plan"],
+  ["Which items cause the most trouble: findings, anomalies and failed valves over three years?", "bad-actors"],
+  ["Which Australian boilers and vessels are missing a design or item registration?", "compliance"],
+  ["Which anomalies from inspections are past their due date, worst first?", "open-anomalies"]
+]

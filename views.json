@@ -1,14 +1,39 @@
 [
   {
     "name": "week",
-    "title": "This week",
-    "subtitle": "Pressure Equipment for Claude Code: what needs attention, rendered by npm run view",
+    "title": "The integrity week",
+    "subtitle": "What is overdue, what falls due soon, and what the records say is out of line",
     "sections": [
-      {
-        "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
-      }
+      { "title": "Needs attention", "sql": "select kind,record,due,detail from v_attention order by due,kind,record" },
+      { "title": "Compliance findings", "note": "Each rule and its source: docs/compliance.md.", "sql": "select rule,record,issue from v_compliance order by rule,record" },
+      { "title": "By site", "sql": "select s.code site,s.name,count(*) filter (where e.status='in_service') in_service,count(*) filter (where d.internal_days<0 or d.external_days<0) overdue from sites s join equipment e on e.site_id=s.id join v_due d on d.equipment_id=e.id group by s.code,s.name order by s.code" }
+    ]
+  },
+  {
+    "name": "register",
+    "title": "Pressure equipment register",
+    "subtitle": "Every item, its hazard level, certificate and next inspections",
+    "sections": [
+      { "title": "Register", "sql": "select code,site,name,kind,hazard_level,design_pressure_kpa,status,cert_no,cert_expires,next_internal,next_external,valves,open_anomalies from v_register order by site,code" }
+    ]
+  },
+  {
+    "name": "corrosion",
+    "title": "Corrosion and remaining life",
+    "subtitle": "Wall loss at every monitoring point and what it means for the next internal",
+    "sections": [
+      { "title": "Shortest remaining life first", "note": "The higher of the long term and short term rate governs (API 510 7.1.1).", "sql": "select equipment,cml,location,last_on,last_mm,required_mm,rate_mm_yr,governs,remaining_life_yrs,below_required from v_cml_rates order by below_required desc,remaining_life_yrs nulls last,equipment,cml" },
+      { "title": "Next internal and what sets it", "sql": "select equipment,site,scheme_internal,half_life_internal,next_internal,internal_set_by from v_due where status='in_service' order by next_internal nulls last" }
+    ]
+  },
+  {
+    "name": "shutdown",
+    "title": "Shutdown plan",
+    "subtitle": "Internal inspections and relief valve tests due in the next twelve months, by site",
+    "sections": [
+      { "title": "Internals", "sql": "select site,equipment,name,next_internal,internal_days,internal_set_by from v_due where status='in_service' and internal_days<=365 order by site,next_internal" },
+      { "title": "Relief valves", "sql": "select site,valve,equipment,set_pressure_kpa,next_due,days_left,last_result from v_valves where status='in_service' and days_left<=365 order by site,next_due" },
+      { "title": "Open anomalies to close in the outage", "sql": "select a.code,e.code equipment,a.severity,a.description,a.due_on from anomalies a join equipment e on e.id=a.equipment_id where a.closed_on is null order by a.due_on nulls last" }
     ]
   }
 ]

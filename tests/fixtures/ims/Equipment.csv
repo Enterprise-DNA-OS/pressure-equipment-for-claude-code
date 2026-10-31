@@ -1,0 +1,4 @@
+Tag,Description,Site,Equipment type,Hazard level,Fluid,Design pressure (kPa),Design temperature (C),Manufacturer,Serial number,Year built,Internal interval (months),External interval (months),In service date
+V-501,Hot water calorifier,Hamilton bottling plant,Pressure Vessel,C,hot water,700,95,Hutt Fabrication,HF-3301,2018,48,24,01/03/2018
+AR-501,"Compressor receiver, line 2",Hamilton bottling plant,Air Receiver,C,air,1050,60,Pacific Air Systems,PA-9920,2019,48,24,15/07/2019
+E-501,Pasteuriser steam heater,Hamilton bottling plant,Shell and tube exchanger,B,steam,600,165,Dairy Process Engineering,DPE-880,2017,60,24,2017-02-01
